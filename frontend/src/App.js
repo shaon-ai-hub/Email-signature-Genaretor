@@ -142,6 +142,36 @@ const SignatureGenerator = () => {
     setFormData({ ...formData, extraFields: updatedFields });
   };
 
+  // Handle logo URL input
+  const handleLogoUrlChange = (e) => {
+    setLogoUrl(e.target.value);
+  };
+
+  // Apply logo from URL
+  const applyLogoFromUrl = () => {
+    if (logoUrl.trim()) {
+      setLogo(logoUrl);
+    }
+  };
+
+  // Handle headshot URL input
+  const handleHeadshotUrlChange = (e) => {
+    setHeadshotUrl(e.target.value);
+  };
+
+  // Apply headshot from URL
+  const applyHeadshotFromUrl = () => {
+    if (headshotUrl.trim()) {
+      setHeadshot({
+        url: headshotUrl,
+        animation: headshotAnimation,
+        borderStyle: headshotBorderStyle,
+        borderColor: headshotBorderColor,
+        shape: headshotShape
+      });
+    }
+  };
+
   // Handle logo upload
   const handleLogoUpload = (e) => {
     const file = e.target.files[0];
