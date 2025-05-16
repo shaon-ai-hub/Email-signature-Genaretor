@@ -725,76 +725,7 @@ const SignatureGenerator = () => {
                     className="signature-preview" 
                     style={{ backgroundColor: colors.background }}
                   >
-                    <table cellPadding="0" cellSpacing="0" style={{ fontFamily: 'Arial, sans-serif', color: colors.text }}>
-                      <tbody>
-                        <tr>
-                          {logo && (
-                            <td style={{ verticalAlign: 'top', paddingRight: '15px' }}>
-                              <img src={logo} alt="Company logo" style={{ maxWidth: '100px', maxHeight: '100px' }} />
-                            </td>
-                          )}
-                          <td style={{ verticalAlign: 'top' }}>
-                            <table cellPadding="0" cellSpacing="0">
-                              <tbody>
-                                <tr>
-                                  <td style={{ paddingBottom: '5px' }}>
-                                    <div style={{ fontSize: '18px', fontWeight: 'bold', color: colors.primary }}>{formData.name}</div>
-                                  </td>
-                                </tr>
-                                <tr>
-                                  <td style={{ paddingBottom: '5px' }}>
-                                    <div style={{ fontSize: '14px', color: colors.secondary }}>{formData.title} | {formData.company}</div>
-                                  </td>
-                                </tr>
-                                <tr>
-                                  <td style={{ paddingBottom: '10px' }}>
-                                    <div style={{ fontSize: '12px' }}>
-                                      <span style={{ display: 'block', marginBottom: '2px' }}>
-                                        📧 <a href={`mailto:${formData.email}`} style={{ color: colors.primary, textDecoration: 'none' }}>{formData.email}</a>
-                                      </span>
-                                      <span style={{ display: 'block', marginBottom: '2px' }}>
-                                        📱 {formData.phone}
-                                      </span>
-                                      {formData.website && (
-                                        <span style={{ display: 'block', marginBottom: '2px' }}>
-                                          🌐 <a href={`https://${formData.website}`} style={{ color: colors.primary, textDecoration: 'none' }}>{formData.website}</a>
-                                        </span>
-                                      )}
-                                      {formData.address && (
-                                        <span style={{ display: 'block', marginBottom: '2px' }}>
-                                          📍 {formData.address}
-                                        </span>
-                                      )}
-                                    </div>
-                                  </td>
-                                </tr>
-                                <tr>
-                                  <td>
-                                    <div style={{ display: 'flex', gap: '8px' }}>
-                                      {socialLinks.filter(link => link.active).map((link, index) => (
-                                        <a 
-                                          key={index} 
-                                          href={link.url} 
-                                          target="_blank" 
-                                          rel="noopener noreferrer"
-                                          style={{ textDecoration: 'none' }}
-                                        >
-                                          <img 
-                                            src={getSocialIcon(link.name)} 
-                                            alt={link.name} 
-                                            style={{ width: '20px', height: '20px' }} 
-                                          />
-                                        </a>
-                                      ))}
-                                    </div>
-                                  </td>
-                                </tr>
-                              </tbody>
-                            </table>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
+                    {renderSignatureTemplate()}
                   </div>
                 </div>
                 <div className="mt-4 text-sm text-gray-500">
