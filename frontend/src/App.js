@@ -146,6 +146,281 @@ const SignatureGenerator = () => {
         return "https://cdn-icons-png.flaticon.com/512/725/725342.png";
     }
   };
+  
+  // Render different signature templates
+  const renderSignatureTemplate = () => {
+    const activeLinks = socialLinks.filter(link => link.active);
+    
+    switch (selectedTemplate) {
+      case 'modern':
+        return (
+          <table cellPadding="0" cellSpacing="0" style={{ fontFamily: 'Arial, sans-serif', color: colors.text, width: '100%' }}>
+            <tbody>
+              <tr>
+                <td style={{ textAlign: 'center', paddingBottom: '15px' }}>
+                  {logo && (
+                    <img src={logo} alt="Company logo" style={{ maxWidth: '120px', maxHeight: '60px', marginBottom: '10px' }} />
+                  )}
+                  <div style={{ fontSize: '22px', fontWeight: 'bold', color: colors.primary, letterSpacing: '1px' }}>{formData.name}</div>
+                  <div style={{ fontSize: '14px', color: colors.secondary, marginTop: '5px' }}>{formData.title} | {formData.company}</div>
+                </td>
+              </tr>
+              <tr>
+                <td style={{ textAlign: 'center' }}>
+                  <div style={{ 
+                    display: 'inline-block', 
+                    padding: '10px 20px', 
+                    borderTop: `1px solid ${colors.secondary}`,
+                    borderBottom: `1px solid ${colors.secondary}`,
+                    fontSize: '12px'
+                  }}>
+                    <span style={{ display: 'inline-block', margin: '0 10px' }}>
+                      <a href={`mailto:${formData.email}`} style={{ color: colors.primary, textDecoration: 'none' }}>{formData.email}</a>
+                    </span>
+                    <span style={{ display: 'inline-block', margin: '0 10px' }}>{formData.phone}</span>
+                    {formData.website && (
+                      <span style={{ display: 'inline-block', margin: '0 10px' }}>
+                        <a href={`https://${formData.website}`} style={{ color: colors.primary, textDecoration: 'none' }}>{formData.website}</a>
+                      </span>
+                    )}
+                  </div>
+                </td>
+              </tr>
+              {activeLinks.length > 0 && (
+                <tr>
+                  <td style={{ textAlign: 'center', paddingTop: '15px' }}>
+                    {activeLinks.map((link, index) => (
+                      <a 
+                        key={index} 
+                        href={link.url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        style={{ textDecoration: 'none', margin: '0 5px' }}
+                      >
+                        <img 
+                          src={getSocialIcon(link.name)} 
+                          alt={link.name} 
+                          style={{ width: '22px', height: '22px' }} 
+                        />
+                      </a>
+                    ))}
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        );
+      
+      case 'compact':
+        return (
+          <table cellPadding="0" cellSpacing="0" style={{ fontFamily: 'Arial, sans-serif', color: colors.text, maxWidth: '400px' }}>
+            <tbody>
+              <tr>
+                <td style={{ paddingRight: '15px', verticalAlign: 'middle' }}>
+                  {logo && (
+                    <img src={logo} alt="Company logo" style={{ maxWidth: '60px', maxHeight: '60px', borderRadius: '50%' }} />
+                  )}
+                </td>
+                <td style={{ borderLeft: `2px solid ${colors.primary}`, paddingLeft: '15px' }}>
+                  <div style={{ fontSize: '16px', fontWeight: 'bold', color: colors.primary }}>{formData.name}</div>
+                  <div style={{ fontSize: '12px', color: colors.secondary, marginBottom: '5px' }}>{formData.title} | {formData.company}</div>
+                  <div style={{ fontSize: '11px', lineHeight: '1.4' }}>
+                    <div>
+                      <a href={`mailto:${formData.email}`} style={{ color: colors.primary, textDecoration: 'none' }}>{formData.email}</a>
+                      {" • "}
+                      {formData.phone}
+                    </div>
+                    {(formData.website || activeLinks.length > 0) && (
+                      <div style={{ marginTop: '3px' }}>
+                        {formData.website && (
+                          <a href={`https://${formData.website}`} style={{ color: colors.primary, textDecoration: 'none', marginRight: '10px' }}>{formData.website}</a>
+                        )}
+                        {activeLinks.map((link, index) => (
+                          <a 
+                            key={index} 
+                            href={link.url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            style={{ textDecoration: 'none', marginRight: '5px' }}
+                          >
+                            <img 
+                              src={getSocialIcon(link.name)} 
+                              alt={link.name} 
+                              style={{ width: '14px', height: '14px' }} 
+                            />
+                          </a>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        );
+        
+      case 'bold':
+        return (
+          <div style={{ fontFamily: 'Arial, sans-serif', color: colors.text, maxWidth: '500px' }}>
+            <div style={{ 
+              backgroundColor: colors.primary, 
+              padding: '15px', 
+              borderRadius: '4px 4px 0 0' 
+            }}>
+              <div style={{ 
+                color: '#ffffff', 
+                fontSize: '20px', 
+                fontWeight: 'bold', 
+                letterSpacing: '1px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between'
+              }}>
+                <span>{formData.name}</span>
+                {logo && (
+                  <img src={logo} alt="Company logo" style={{ maxHeight: '40px', maxWidth: '100px' }} />
+                )}
+              </div>
+            </div>
+            <div style={{ padding: '15px', border: `1px solid ${colors.primary}`, borderTop: 'none', borderRadius: '0 0 4px 4px' }}>
+              <div style={{ fontSize: '14px', fontWeight: 'bold', color: colors.secondary, marginBottom: '10px' }}>
+                {formData.title} | {formData.company}
+              </div>
+              <table cellPadding="0" cellSpacing="0" style={{ fontSize: '12px', width: '100%' }}>
+                <tbody>
+                  <tr>
+                    <td style={{ width: '50%', paddingBottom: '5px' }}>
+                      <strong>Email: </strong>
+                      <a href={`mailto:${formData.email}`} style={{ color: colors.primary, textDecoration: 'none' }}>{formData.email}</a>
+                    </td>
+                    <td style={{ width: '50%', paddingBottom: '5px' }}>
+                      <strong>Phone: </strong>{formData.phone}
+                    </td>
+                  </tr>
+                  {(formData.website || formData.address) && (
+                    <tr>
+                      {formData.website && (
+                        <td style={{ paddingBottom: '5px' }}>
+                          <strong>Web: </strong>
+                          <a href={`https://${formData.website}`} style={{ color: colors.primary, textDecoration: 'none' }}>{formData.website}</a>
+                        </td>
+                      )}
+                      {formData.address && (
+                        <td style={{ paddingBottom: '5px' }}>
+                          <strong>Address: </strong>{formData.address}
+                        </td>
+                      )}
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+              {activeLinks.length > 0 && (
+                <div style={{ 
+                  marginTop: '10px', 
+                  borderTop: `1px solid ${colors.secondary}`, 
+                  paddingTop: '10px',
+                  display: 'flex',
+                  gap: '10px' 
+                }}>
+                  {activeLinks.map((link, index) => (
+                    <a 
+                      key={index} 
+                      href={link.url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      style={{ textDecoration: 'none' }}
+                    >
+                      <img 
+                        src={getSocialIcon(link.name)} 
+                        alt={link.name} 
+                        style={{ width: '22px', height: '22px' }} 
+                      />
+                    </a>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        );
+        
+      // Classic template (default)
+      default:
+        return (
+          <table cellPadding="0" cellSpacing="0" style={{ fontFamily: 'Arial, sans-serif', color: colors.text }}>
+            <tbody>
+              <tr>
+                {logo && (
+                  <td style={{ verticalAlign: 'top', paddingRight: '15px' }}>
+                    <img src={logo} alt="Company logo" style={{ maxWidth: '100px', maxHeight: '100px' }} />
+                  </td>
+                )}
+                <td style={{ verticalAlign: 'top' }}>
+                  <table cellPadding="0" cellSpacing="0">
+                    <tbody>
+                      <tr>
+                        <td style={{ paddingBottom: '5px' }}>
+                          <div style={{ fontSize: '18px', fontWeight: 'bold', color: colors.primary }}>{formData.name}</div>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style={{ paddingBottom: '5px' }}>
+                          <div style={{ fontSize: '14px', color: colors.secondary }}>{formData.title} | {formData.company}</div>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style={{ paddingBottom: '10px' }}>
+                          <div style={{ fontSize: '12px' }}>
+                            <span style={{ display: 'block', marginBottom: '2px' }}>
+                              📧 <a href={`mailto:${formData.email}`} style={{ color: colors.primary, textDecoration: 'none' }}>{formData.email}</a>
+                            </span>
+                            <span style={{ display: 'block', marginBottom: '2px' }}>
+                              📱 {formData.phone}
+                            </span>
+                            {formData.website && (
+                              <span style={{ display: 'block', marginBottom: '2px' }}>
+                                🌐 <a href={`https://${formData.website}`} style={{ color: colors.primary, textDecoration: 'none' }}>{formData.website}</a>
+                              </span>
+                            )}
+                            {formData.address && (
+                              <span style={{ display: 'block', marginBottom: '2px' }}>
+                                📍 {formData.address}
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                      {activeLinks.length > 0 && (
+                        <tr>
+                          <td>
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                              {activeLinks.map((link, index) => (
+                                <a 
+                                  key={index} 
+                                  href={link.url} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  style={{ textDecoration: 'none' }}
+                                >
+                                  <img 
+                                    src={getSocialIcon(link.name)} 
+                                    alt={link.name} 
+                                    style={{ width: '20px', height: '20px' }} 
+                                  />
+                                </a>
+                              ))}
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        );
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
