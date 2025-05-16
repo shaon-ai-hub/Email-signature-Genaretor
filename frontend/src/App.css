@@ -25,6 +25,21 @@ textarea:focus {
   padding: 16px;
   border-radius: 4px;
   transition: all 0.3s ease;
+  overflow: auto;
+}
+
+/* Template selection styles */
+.template-option {
+  transition: all 0.2s ease;
+}
+
+.template-option:hover {
+  transform: translateY(-2px);
+}
+
+.template-option.active {
+  border-color: #0f766e;
+  background-color: rgba(15, 118, 110, 0.05);
 }
 
 /* Fixing color picker styling */
@@ -56,5 +71,9 @@ input[type="color"]::-webkit-color-swatch {
   .signature-preview {
     max-width: 100%;
     overflow-x: auto;
+  }
+  
+  .template-grid {
+    grid-template-columns: 1fr;
   }
 }
