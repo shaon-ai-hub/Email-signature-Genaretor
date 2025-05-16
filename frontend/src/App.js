@@ -51,11 +51,13 @@ const SignatureGenerator = () => {
 
   // Logo state
   const [logo, setLogo] = useState(null);
+  const [logoUrl, setLogoUrl] = useState("");
   const [showLogoCropper, setShowLogoCropper] = useState(false);
   const [tempLogoImage, setTempLogoImage] = useState(null);
   
   // Headshot state
   const [headshot, setHeadshot] = useState(null);
+  const [headshotUrl, setHeadshotUrl] = useState("");
   const [showHeadshotCropper, setShowHeadshotCropper] = useState(false);
   const [tempHeadshotImage, setTempHeadshotImage] = useState(null);
   const [showHeadshotCustomizer, setShowHeadshotCustomizer] = useState(false);
