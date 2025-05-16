@@ -160,6 +160,39 @@ const SignatureGenerator = () => {
           <div className="flex flex-col lg:flex-row gap-8">
             {/* Left side: Controls */}
             <div className="lg:w-1/2 space-y-6">
+              {/* Template Selection */}
+              <div className="bg-white p-6 rounded-lg shadow">
+                <h2 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 mr-2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" />
+                  </svg>
+                  Template
+                </h2>
+                <div className="grid grid-cols-2 gap-3">
+                  {templates.map((template) => (
+                    <div
+                      key={template.id}
+                      className={`border rounded-lg p-3 cursor-pointer transition-colors ${
+                        selectedTemplate === template.id
+                          ? "border-teal-500 bg-teal-50"
+                          : "border-gray-200 hover:border-gray-300"
+                      }`}
+                      onClick={() => setSelectedTemplate(template.id)}
+                    >
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="font-medium">{template.name}</h3>
+                          <p className="text-xs text-gray-500">{template.description}</p>
+                        </div>
+                        {selectedTemplate === template.id && (
+                          <CheckIcon className="h-5 w-5 text-teal-600" />
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               {/* Personal Information */}
               <div className="bg-white p-6 rounded-lg shadow">
                 <h2 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
