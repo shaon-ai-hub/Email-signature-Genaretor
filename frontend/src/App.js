@@ -150,6 +150,26 @@ const SignatureGenerator = () => {
 
   // Social media icons
   const getSocialIcon = (name) => {
+    // Check if we have a custom icon for this social network
+    if (customSocialIcons[name]) {
+      return customSocialIcons[name];
+    }
+    
+    // Otherwise use the default icon based on the selected style
+    switch (iconStyle) {
+      case 'flat':
+        return getSocialIconFlat(name);
+      case 'colored':
+        return getSocialIconColored(name);
+      case 'monochrome':
+        return getSocialIconMonochrome(name);
+      default:
+        return getSocialIconFlat(name);
+    }
+  };
+  
+  // Flat icon style
+  const getSocialIconFlat = (name) => {
     switch (name.toLowerCase()) {
       case 'linkedin':
         return "https://cdn-icons-png.flaticon.com/512/174/174857.png";
@@ -159,9 +179,113 @@ const SignatureGenerator = () => {
         return "https://cdn-icons-png.flaticon.com/512/733/733547.png";
       case 'instagram':
         return "https://cdn-icons-png.flaticon.com/512/2111/2111463.png";
+      case 'github':
+        return "https://cdn-icons-png.flaticon.com/512/733/733553.png";
+      case 'youtube':
+        return "https://cdn-icons-png.flaticon.com/512/1384/1384060.png";
+      case 'whatsapp':
+        return "https://cdn-icons-png.flaticon.com/512/733/733585.png";
+      case 'telegram':
+        return "https://cdn-icons-png.flaticon.com/512/2111/2111646.png";
       default:
         return "https://cdn-icons-png.flaticon.com/512/725/725342.png";
     }
+  };
+  
+  // Colored icon style
+  const getSocialIconColored = (name) => {
+    switch (name.toLowerCase()) {
+      case 'linkedin':
+        return "https://cdn-icons-png.flaticon.com/512/3536/3536505.png";
+      case 'twitter':
+        return "https://cdn-icons-png.flaticon.com/512/3256/3256013.png";
+      case 'facebook':
+        return "https://cdn-icons-png.flaticon.com/512/5968/5968764.png";
+      case 'instagram':
+        return "https://cdn-icons-png.flaticon.com/512/3955/3955024.png";
+      case 'github':
+        return "https://cdn-icons-png.flaticon.com/512/3291/3291695.png";
+      case 'youtube':
+        return "https://cdn-icons-png.flaticon.com/512/1384/1384028.png";
+      case 'whatsapp':
+        return "https://cdn-icons-png.flaticon.com/512/5968/5968841.png";
+      case 'telegram':
+        return "https://cdn-icons-png.flaticon.com/512/5968/5968804.png";
+      default:
+        return "https://cdn-icons-png.flaticon.com/512/725/725342.png";
+    }
+  };
+  
+  // Monochrome icon style
+  const getSocialIconMonochrome = (name) => {
+    switch (name.toLowerCase()) {
+      case 'linkedin':
+        return "https://cdn-icons-png.flaticon.com/512/61/61109.png";
+      case 'twitter':
+        return "https://cdn-icons-png.flaticon.com/512/25/25347.png";
+      case 'facebook':
+        return "https://cdn-icons-png.flaticon.com/512/20/20673.png";
+      case 'instagram':
+        return "https://cdn-icons-png.flaticon.com/512/87/87390.png";
+      case 'github':
+        return "https://cdn-icons-png.flaticon.com/512/25/25231.png";
+      case 'youtube':
+        return "https://cdn-icons-png.flaticon.com/512/1077/1077046.png";
+      case 'whatsapp':
+        return "https://cdn-icons-png.flaticon.com/512/134/134937.png";
+      case 'telegram':
+        return "https://cdn-icons-png.flaticon.com/512/87/87413.png";
+      default:
+        return "https://cdn-icons-png.flaticon.com/512/44/44646.png";
+    }
+  };
+  
+  // Handle custom icon upload for a specific social network
+  const handleCustomIconUpload = (e, socialName) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setCustomSocialIcons(prev => ({
+          ...prev,
+          [socialName]: reader.result
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+  
+  // Handle HTML template upload
+  const handleHtmlTemplateUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setHtmlTemplate(file.name);
+      
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setCustomHtml(reader.result);
+      };
+      reader.readAsText(file);
+    }
+  };
+  
+  // Clear HTML template
+  const clearHtmlTemplate = () => {
+    setHtmlTemplate(null);
+    setCustomHtml("");
+  };
+  
+  // Get current HTML code
+  const getCurrentHtml = () => {
+    if (customHtml) {
+      return customHtml;
+    }
+    
+    if (signatureRef.current) {
+      return signatureRef.current.outerHTML;
+    }
+    
+    return "";
   };
   
   // Render different signature templates
