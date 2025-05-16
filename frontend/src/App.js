@@ -16,6 +16,9 @@ import {
 } from '@heroicons/react/24/outline';
 
 const SignatureGenerator = () => {
+  // Template selection state
+  const [selectedTemplate, setSelectedTemplate] = useState("classic");
+  
   // Form state
   const [formData, setFormData] = useState({
     name: "John Doe",
@@ -45,6 +48,14 @@ const SignatureGenerator = () => {
     { name: "Facebook", url: "https://facebook.com/johndoe", active: false },
     { name: "Instagram", url: "https://instagram.com/johndoe", active: false }
   ]);
+  
+  // Template options
+  const templates = [
+    { id: "classic", name: "Classic", description: "Traditional horizontal layout" },
+    { id: "modern", name: "Modern", description: "Clean, minimalist design" },
+    { id: "compact", name: "Compact", description: "Space-efficient layout" },
+    { id: "bold", name: "Bold", description: "Eye-catching design with emphasis" }
+  ];
 
   // Refs
   const signatureRef = useRef(null);
