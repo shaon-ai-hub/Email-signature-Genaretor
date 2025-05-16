@@ -734,6 +734,24 @@ ${signatureHtml}
                         </div>
                       )}
                       
+                      <div className="w-full mb-2">
+                        <div className="flex items-center mt-2">
+                          <input
+                            type="text"
+                            placeholder="Paste logo URL here"
+                            value={logoUrl}
+                            onChange={handleLogoUrlChange}
+                            className="w-full text-xs border rounded-l-md"
+                          />
+                          <button
+                            onClick={applyLogoFromUrl}
+                            className="inline-flex items-center justify-center px-2 py-1 border border-l-0 border-gray-300 rounded-r-md bg-gray-50 text-gray-500 hover:bg-gray-100"
+                          >
+                            <ArrowUpTrayIcon className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                      
                       <label
                         htmlFor="logo-upload"
                         className="cursor-pointer mt-2 inline-flex items-center rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
@@ -790,6 +808,24 @@ ${signatureHtml}
                           <UserCircleIcon className="h-12 w-12 text-gray-400" />
                         </div>
                       )}
+                      
+                      <div className="w-full mb-2">
+                        <div className="flex items-center mt-2">
+                          <input
+                            type="text"
+                            placeholder="Paste headshot URL here"
+                            value={headshotUrl}
+                            onChange={handleHeadshotUrlChange}
+                            className="w-full text-xs border rounded-l-md"
+                          />
+                          <button
+                            onClick={applyHeadshotFromUrl}
+                            className="inline-flex items-center justify-center px-2 py-1 border border-l-0 border-gray-300 rounded-r-md bg-gray-50 text-gray-500 hover:bg-gray-100"
+                          >
+                            <ArrowUpTrayIcon className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
                       
                       <div className="flex space-x-2">
                         <label
