@@ -11,13 +11,31 @@ import {
   LinkIcon,
   XMarkIcon,
   PlusIcon,
+  PencilIcon,
   CodeBracketIcon,
-  CheckIcon
+  CheckIcon,
+  Cog6ToothIcon,
+  UserCircleIcon,
+  BuildingOfficeIcon,
+  AdjustmentsHorizontalIcon,
+  ArrowUpTrayIcon,
+  TrashIcon,
+  QuestionMarkCircleIcon
 } from '@heroicons/react/24/outline';
+
+// Import components
+import ImageCropper from './components/ImageCropper';
+import TemplateSelector from './components/TemplateSelector';
+import IconSelector from './components/IconSelector';
+import AnimatedHeadshot from './components/AnimatedHeadshot';
+
+// Import templates
+import templates from './data/templates';
 
 const SignatureGenerator = () => {
   // Template selection state
   const [selectedTemplate, setSelectedTemplate] = useState("classic");
+  const [showTemplateSelector, setShowTemplateSelector] = useState(false);
   
   // Form state
   const [formData, setFormData] = useState({
@@ -27,18 +45,28 @@ const SignatureGenerator = () => {
     email: "john.doe@acme.com",
     phone: "+1 (555) 123-4567",
     website: "www.acme.com",
-    address: "123 Business Ave, New York, NY 10001"
+    address: "123 Business Ave, New York, NY 10001",
+    extraFields: []
   });
 
   // Logo state
   const [logo, setLogo] = useState(null);
+  const [showLogoCropper, setShowLogoCropper] = useState(false);
+  const [tempLogoImage, setTempLogoImage] = useState(null);
+  
+  // Headshot state
+  const [headshot, setHeadshot] = useState(null);
+  const [showHeadshotCropper, setShowHeadshotCropper] = useState(false);
+  const [tempHeadshotImage, setTempHeadshotImage] = useState(null);
+  const [showHeadshotCustomizer, setShowHeadshotCustomizer] = useState(false);
   
   // Colors state
   const [colors, setColors] = useState({
     primary: "#0f766e",
     secondary: "#4b5563",
     background: "#ffffff",
-    text: "#111827"
+    text: "#111827",
+    iconColor: "#0f766e"
   });
 
   // Social links state
@@ -58,6 +86,8 @@ const SignatureGenerator = () => {
   
   // Icon style selection
   const [iconStyle, setIconStyle] = useState("flat");
+  const [showIconSelector, setShowIconSelector] = useState(false);
+  const [iconAnimation, setIconAnimation] = useState("none");
   
   // HTML Template
   const [htmlTemplate, setHtmlTemplate] = useState(null);
@@ -66,14 +96,12 @@ const SignatureGenerator = () => {
   // Toggle showing raw HTML
   const [showHtmlCode, setShowHtmlCode] = useState(false);
   
-  // Template options
-  const templates = [
-    { id: "classic", name: "Classic", description: "Traditional horizontal layout" },
-    { id: "modern", name: "Modern", description: "Clean, minimalist design" },
-    { id: "compact", name: "Compact", description: "Space-efficient layout" },
-    { id: "bold", name: "Bold", description: "Eye-catching design with emphasis" }
-  ];
-
+  // Headshot animation and styling
+  const [headshotAnimation, setHeadshotAnimation] = useState("none");
+  const [headshotBorderStyle, setHeadshotBorderStyle] = useState("none");
+  const [headshotBorderColor, setHeadshotBorderColor] = useState("#0f766e");
+  const [headshotShape, setHeadshotShape] = useState("circle");
+  
   // Refs
   const signatureRef = useRef(null);
 
@@ -89,21 +117,83 @@ const SignatureGenerator = () => {
     setColors({ ...colors, [name]: value });
   };
 
+  // Handle extra field changes
+  const handleExtraFieldChange = (index, field) => {
+    const updatedFields = [...formData.extraFields];
+    updatedFields[index] = field;
+    setFormData({ ...formData, extraFields: updatedFields });
+  };
+
+  // Add extra field
+  const addExtraField = () => {
+    const newField = { label: "Custom Field", value: "", icon: "📝", isLink: false };
+    setFormData({ 
+      ...formData, 
+      extraFields: [...formData.extraFields, newField] 
+    });
+  };
+
+  // Remove extra field
+  const removeExtraField = (index) => {
+    const updatedFields = [...formData.extraFields];
+    updatedFields.splice(index, 1);
+    setFormData({ ...formData, extraFields: updatedFields });
+  };
+
   // Handle logo upload
   const handleLogoUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setLogo(reader.result);
+        setTempLogoImage(reader.result);
+        setShowLogoCropper(true);
       };
       reader.readAsDataURL(file);
     }
   };
 
+  // Handle logo crop complete
+  const handleLogoCropComplete = (croppedLogo) => {
+    setLogo(croppedLogo);
+    setShowLogoCropper(false);
+    setTempLogoImage(null);
+  };
+
+  // Handle headshot upload
+  const handleHeadshotUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setTempHeadshotImage(reader.result);
+        setShowHeadshotCropper(true);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Handle headshot crop complete
+  const handleHeadshotCropComplete = (croppedHeadshot) => {
+    setHeadshot({
+      url: croppedHeadshot,
+      animation: headshotAnimation,
+      borderStyle: headshotBorderStyle,
+      borderColor: headshotBorderColor,
+      shape: headshotShape
+    });
+    setShowHeadshotCropper(false);
+    setTempHeadshotImage(null);
+  };
+
   // Clear logo
   const handleClearLogo = () => {
     setLogo(null);
+  };
+
+  // Clear headshot
+  const handleClearHeadshot = () => {
+    setHeadshot(null);
   };
 
   // Toggle social link active state
@@ -120,42 +210,107 @@ const SignatureGenerator = () => {
     setSocialLinks(updatedLinks);
   };
 
-  // Generate HTML code
-  const generateHtmlCode = () => {
-    if (customHtml) {
-      return customHtml;
+  // Handle custom icon upload for a specific social network
+  const handleCustomIconUpload = (e, socialName) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setCustomSocialIcons(prev => ({
+          ...prev,
+          [socialName]: reader.result
+        }));
+      };
+      reader.readAsDataURL(file);
     }
-    
-    if (signatureRef.current) {
-      const html = signatureRef.current.outerHTML;
-      // Format HTML with proper indentation for readability
-      return html.replace(/<([^>]+)>/g, '\n<$1>');
-    }
-    return "";
   };
 
-  // Download HTML
-  const downloadHtml = () => {
-    const html = generateHtmlCode();
-    const blob = new Blob([html], { type: "text/html" });
-    saveAs(blob, "email-signature.html");
+  // Clear custom icon
+  const clearCustomIcon = (socialName) => {
+    setCustomSocialIcons(prev => {
+      const newIcons = {...prev};
+      delete newIcons[socialName];
+      return newIcons;
+    });
   };
 
-  // Download as PNG
-  const downloadPng = async () => {
-    if (customHtml) {
-      alert("Custom HTML templates can only be downloaded as HTML, not as PNG.");
-      return;
+  // Handle icon style selection
+  const handleIconStyleSelect = (style) => {
+    setIconStyle(style);
+  };
+
+  // Handle icon animation selection
+  const handleIconAnimationSelect = (animation) => {
+    setIconAnimation(animation);
+  };
+
+  // Handle icon color change
+  const handleIconColorChange = (color) => {
+    setColors(prev => ({ ...prev, iconColor: color }));
+  };
+
+  // Handle headshot animation selection
+  const handleHeadshotAnimationSelect = (animation) => {
+    setHeadshotAnimation(animation);
+    if (headshot) {
+      setHeadshot({
+        ...headshot,
+        animation: animation
+      });
     }
-    
-    if (signatureRef.current) {
-      try {
-        const dataUrl = await toPng(signatureRef.current, { quality: 0.95 });
-        saveAs(dataUrl, 'email-signature.png');
-      } catch (error) {
-        console.error('Error generating PNG:', error);
-      }
+  };
+
+  // Handle headshot border style selection
+  const handleHeadshotBorderStyleSelect = (style) => {
+    setHeadshotBorderStyle(style);
+    if (headshot) {
+      setHeadshot({
+        ...headshot,
+        borderStyle: style
+      });
     }
+  };
+
+  // Handle headshot border color change
+  const handleHeadshotBorderColorChange = (color) => {
+    setHeadshotBorderColor(color);
+    if (headshot) {
+      setHeadshot({
+        ...headshot,
+        borderColor: color
+      });
+    }
+  };
+
+  // Handle headshot shape selection
+  const handleHeadshotShapeSelect = (shape) => {
+    setHeadshotShape(shape);
+    if (headshot) {
+      setHeadshot({
+        ...headshot,
+        shape: shape
+      });
+    }
+  };
+
+  // Handle HTML template upload
+  const handleHtmlTemplateUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setHtmlTemplate(file.name);
+      
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setCustomHtml(reader.result);
+      };
+      reader.readAsText(file);
+    }
+  };
+
+  // Clear HTML template
+  const clearHtmlTemplate = () => {
+    setHtmlTemplate(null);
+    setCustomHtml("");
   };
 
   // Social media icons
@@ -173,6 +328,16 @@ const SignatureGenerator = () => {
         return getSocialIconColored(name);
       case 'monochrome':
         return getSocialIconMonochrome(name);
+      case 'outlined':
+        return getSocialIconOutlined(name);
+      case 'rounded':
+        return getSocialIconRounded(name);
+      case 'square':
+        return getSocialIconSquare(name);
+      case 'gradient':
+        return getSocialIconGradient(name);
+      case '3d':
+        return getSocialIcon3d(name);
       default:
         return getSocialIconFlat(name);
     }
@@ -250,334 +415,198 @@ const SignatureGenerator = () => {
     }
   };
   
-  // Handle custom icon upload for a specific social network
-  const handleCustomIconUpload = (e, socialName) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setCustomSocialIcons(prev => ({
-          ...prev,
-          [socialName]: reader.result
-        }));
-      };
-      reader.readAsDataURL(file);
+  // Outlined icon style
+  const getSocialIconOutlined = (name) => {
+    switch (name.toLowerCase()) {
+      case 'linkedin':
+        return "https://cdn-icons-png.flaticon.com/512/1384/1384014.png";
+      case 'twitter':
+        return "https://cdn-icons-png.flaticon.com/512/1384/1384017.png";
+      case 'facebook':
+        return "https://cdn-icons-png.flaticon.com/512/1384/1384005.png";
+      case 'instagram':
+        return "https://cdn-icons-png.flaticon.com/512/1384/1384015.png";
+      case 'github':
+        return "https://cdn-icons-png.flaticon.com/512/1051/1051326.png";
+      case 'youtube':
+        return "https://cdn-icons-png.flaticon.com/512/1384/1384012.png";
+      case 'whatsapp':
+        return "https://cdn-icons-png.flaticon.com/512/1384/1384023.png";
+      case 'telegram':
+        return "https://cdn-icons-png.flaticon.com/512/1384/1384018.png";
+      default:
+        return "https://cdn-icons-png.flaticon.com/512/1384/1384062.png";
     }
   };
   
-  // Handle HTML template upload
-  const handleHtmlTemplateUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setHtmlTemplate(file.name);
-      
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setCustomHtml(reader.result);
-      };
-      reader.readAsText(file);
+  // Rounded icon style
+  const getSocialIconRounded = (name) => {
+    switch (name.toLowerCase()) {
+      case 'linkedin':
+        return "https://cdn-icons-png.flaticon.com/512/3938/3938044.png";
+      case 'twitter':
+        return "https://cdn-icons-png.flaticon.com/512/3938/3938043.png";
+      case 'facebook':
+        return "https://cdn-icons-png.flaticon.com/512/3938/3938025.png";
+      case 'instagram':
+        return "https://cdn-icons-png.flaticon.com/512/3938/3938036.png";
+      case 'github':
+        return "https://cdn-icons-png.flaticon.com/512/3938/3938033.png";
+      case 'youtube':
+        return "https://cdn-icons-png.flaticon.com/512/3938/3938037.png";
+      case 'whatsapp':
+        return "https://cdn-icons-png.flaticon.com/512/3938/3938041.png";
+      case 'telegram':
+        return "https://cdn-icons-png.flaticon.com/512/3938/3938067.png";
+      default:
+        return "https://cdn-icons-png.flaticon.com/512/3938/3938056.png";
     }
   };
   
-  // Clear HTML template
-  const clearHtmlTemplate = () => {
-    setHtmlTemplate(null);
-    setCustomHtml("");
+  // Square icon style
+  const getSocialIconSquare = (name) => {
+    switch (name.toLowerCase()) {
+      case 'linkedin':
+        return "https://cdn-icons-png.flaticon.com/512/174/174857.png";
+      case 'twitter':
+        return "https://cdn-icons-png.flaticon.com/512/733/733635.png";
+      case 'facebook':
+        return "https://cdn-icons-png.flaticon.com/512/733/733605.png";
+      case 'instagram':
+        return "https://cdn-icons-png.flaticon.com/512/1400/1400829.png";
+      case 'github':
+        return "https://cdn-icons-png.flaticon.com/512/733/733609.png";
+      case 'youtube':
+        return "https://cdn-icons-png.flaticon.com/512/1384/1384028.png";
+      case 'whatsapp':
+        return "https://cdn-icons-png.flaticon.com/512/1384/1384055.png";
+      case 'telegram':
+        return "https://cdn-icons-png.flaticon.com/512/2111/2111812.png";
+      default:
+        return "https://cdn-icons-png.flaticon.com/512/3038/3038157.png";
+    }
   };
   
-  // Get current HTML code
-  const getCurrentHtml = () => {
+  // Gradient icon style
+  const getSocialIconGradient = (name) => {
+    switch (name.toLowerCase()) {
+      case 'linkedin':
+        return "https://cdn-icons-png.flaticon.com/512/3536/3536505.png";
+      case 'twitter':
+        return "https://cdn-icons-png.flaticon.com/512/3670/3670151.png";
+      case 'facebook':
+        return "https://cdn-icons-png.flaticon.com/512/3670/3670124.png";
+      case 'instagram':
+        return "https://cdn-icons-png.flaticon.com/512/3670/3670125.png";
+      case 'github':
+        return "https://cdn-icons-png.flaticon.com/512/3670/3670163.png";
+      case 'youtube':
+        return "https://cdn-icons-png.flaticon.com/512/3670/3670147.png";
+      case 'whatsapp':
+        return "https://cdn-icons-png.flaticon.com/512/3670/3670070.png";
+      case 'telegram':
+        return "https://cdn-icons-png.flaticon.com/512/3670/3670070.png";
+      default:
+        return "https://cdn-icons-png.flaticon.com/512/3670/3670156.png";
+    }
+  };
+  
+  // 3D icon style
+  const getSocialIcon3d = (name) => {
+    switch (name.toLowerCase()) {
+      case 'linkedin':
+        return "https://cdn-icons-png.flaticon.com/512/3536/3536505.png";
+      case 'twitter':
+        return "https://cdn-icons-png.flaticon.com/512/3256/3256013.png";
+      case 'facebook':
+        return "https://cdn-icons-png.flaticon.com/512/3536/3536394.png";
+      case 'instagram':
+        return "https://cdn-icons-png.flaticon.com/512/3955/3955024.png";
+      case 'github':
+        return "https://cdn-icons-png.flaticon.com/512/3291/3291667.png";
+      case 'youtube':
+        return "https://cdn-icons-png.flaticon.com/512/3670/3670147.png";
+      case 'whatsapp':
+        return "https://cdn-icons-png.flaticon.com/512/3670/3670051.png";
+      case 'telegram':
+        return "https://cdn-icons-png.flaticon.com/512/3670/3670070.png";
+      default:
+        return "https://cdn-icons-png.flaticon.com/512/3670/3670156.png";
+    }
+  };
+
+  // Generate HTML code
+  const generateHtmlCode = () => {
     if (customHtml) {
       return customHtml;
     }
     
     if (signatureRef.current) {
-      return signatureRef.current.outerHTML;
+      const html = signatureRef.current.outerHTML;
+      // Format HTML with proper indentation for readability
+      return html.replace(/<([^>]+)>/g, '\n<$1>');
     }
-    
     return "";
   };
-  
-  // Render different signature templates
-  const renderSignatureTemplate = () => {
-    const activeLinks = socialLinks.filter(link => link.active);
-    
-    switch (selectedTemplate) {
-      case 'modern':
-        return (
-          <table cellPadding="0" cellSpacing="0" style={{ fontFamily: 'Arial, sans-serif', color: colors.text, width: '100%' }}>
-            <tbody>
-              <tr>
-                <td style={{ textAlign: 'center', paddingBottom: '15px' }}>
-                  {logo && (
-                    <img src={logo} alt="Company logo" style={{ maxWidth: '120px', maxHeight: '60px', marginBottom: '10px' }} />
-                  )}
-                  <div style={{ fontSize: '22px', fontWeight: 'bold', color: colors.primary, letterSpacing: '1px' }}>{formData.name}</div>
-                  <div style={{ fontSize: '14px', color: colors.secondary, marginTop: '5px' }}>{formData.title} | {formData.company}</div>
-                </td>
-              </tr>
-              <tr>
-                <td style={{ textAlign: 'center' }}>
-                  <div style={{ 
-                    display: 'inline-block', 
-                    padding: '10px 20px', 
-                    borderTop: `1px solid ${colors.secondary}`,
-                    borderBottom: `1px solid ${colors.secondary}`,
-                    fontSize: '12px'
-                  }}>
-                    <span style={{ display: 'inline-block', margin: '0 10px' }}>
-                      <a href={`mailto:${formData.email}`} style={{ color: colors.primary, textDecoration: 'none' }}>{formData.email}</a>
-                    </span>
-                    <span style={{ display: 'inline-block', margin: '0 10px' }}>{formData.phone}</span>
-                    {formData.website && (
-                      <span style={{ display: 'inline-block', margin: '0 10px' }}>
-                        <a href={`https://${formData.website}`} style={{ color: colors.primary, textDecoration: 'none' }}>{formData.website}</a>
-                      </span>
-                    )}
-                  </div>
-                </td>
-              </tr>
-              {activeLinks.length > 0 && (
-                <tr>
-                  <td style={{ textAlign: 'center', paddingTop: '15px' }}>
-                    {activeLinks.map((link, index) => (
-                      <a 
-                        key={index} 
-                        href={link.url} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        style={{ textDecoration: 'none', margin: '0 5px' }}
-                      >
-                        <img 
-                          src={getSocialIcon(link.name)} 
-                          alt={link.name} 
-                          style={{ width: '22px', height: '22px' }} 
-                        />
-                      </a>
-                    ))}
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        );
-      
-      case 'compact':
-        return (
-          <table cellPadding="0" cellSpacing="0" style={{ fontFamily: 'Arial, sans-serif', color: colors.text, maxWidth: '400px' }}>
-            <tbody>
-              <tr>
-                <td style={{ paddingRight: '15px', verticalAlign: 'middle' }}>
-                  {logo && (
-                    <img src={logo} alt="Company logo" style={{ maxWidth: '60px', maxHeight: '60px', borderRadius: '50%' }} />
-                  )}
-                </td>
-                <td style={{ borderLeft: `2px solid ${colors.primary}`, paddingLeft: '15px' }}>
-                  <div style={{ fontSize: '16px', fontWeight: 'bold', color: colors.primary }}>{formData.name}</div>
-                  <div style={{ fontSize: '12px', color: colors.secondary, marginBottom: '5px' }}>{formData.title} | {formData.company}</div>
-                  <div style={{ fontSize: '11px', lineHeight: '1.4' }}>
-                    <div>
-                      <a href={`mailto:${formData.email}`} style={{ color: colors.primary, textDecoration: 'none' }}>{formData.email}</a>
-                      {" • "}
-                      {formData.phone}
-                    </div>
-                    {(formData.website || activeLinks.length > 0) && (
-                      <div style={{ marginTop: '3px' }}>
-                        {formData.website && (
-                          <a href={`https://${formData.website}`} style={{ color: colors.primary, textDecoration: 'none', marginRight: '10px' }}>{formData.website}</a>
-                        )}
-                        {activeLinks.map((link, index) => (
-                          <a 
-                            key={index} 
-                            href={link.url} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            style={{ textDecoration: 'none', marginRight: '5px' }}
-                          >
-                            <img 
-                              src={getSocialIcon(link.name)} 
-                              alt={link.name} 
-                              style={{ width: '14px', height: '14px' }} 
-                            />
-                          </a>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        );
-        
-      case 'bold':
-        return (
-          <div style={{ fontFamily: 'Arial, sans-serif', color: colors.text, maxWidth: '500px' }}>
-            <div style={{ 
-              backgroundColor: colors.primary, 
-              padding: '15px', 
-              borderRadius: '4px 4px 0 0' 
-            }}>
-              <div style={{ 
-                color: '#ffffff', 
-                fontSize: '20px', 
-                fontWeight: 'bold', 
-                letterSpacing: '1px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between'
-              }}>
-                <span>{formData.name}</span>
-                {logo && (
-                  <img src={logo} alt="Company logo" style={{ maxHeight: '40px', maxWidth: '100px' }} />
-                )}
-              </div>
-            </div>
-            <div style={{ padding: '15px', border: `1px solid ${colors.primary}`, borderTop: 'none', borderRadius: '0 0 4px 4px' }}>
-              <div style={{ fontSize: '14px', fontWeight: 'bold', color: colors.secondary, marginBottom: '10px' }}>
-                {formData.title} | {formData.company}
-              </div>
-              <table cellPadding="0" cellSpacing="0" style={{ fontSize: '12px', width: '100%' }}>
-                <tbody>
-                  <tr>
-                    <td style={{ width: '50%', paddingBottom: '5px' }}>
-                      <strong>Email: </strong>
-                      <a href={`mailto:${formData.email}`} style={{ color: colors.primary, textDecoration: 'none' }}>{formData.email}</a>
-                    </td>
-                    <td style={{ width: '50%', paddingBottom: '5px' }}>
-                      <strong>Phone: </strong>{formData.phone}
-                    </td>
-                  </tr>
-                  {(formData.website || formData.address) && (
-                    <tr>
-                      {formData.website && (
-                        <td style={{ paddingBottom: '5px' }}>
-                          <strong>Web: </strong>
-                          <a href={`https://${formData.website}`} style={{ color: colors.primary, textDecoration: 'none' }}>{formData.website}</a>
-                        </td>
-                      )}
-                      {formData.address && (
-                        <td style={{ paddingBottom: '5px' }}>
-                          <strong>Address: </strong>{formData.address}
-                        </td>
-                      )}
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-              {activeLinks.length > 0 && (
-                <div style={{ 
-                  marginTop: '10px', 
-                  borderTop: `1px solid ${colors.secondary}`, 
-                  paddingTop: '10px',
-                  display: 'flex',
-                  gap: '10px' 
-                }}>
-                  {activeLinks.map((link, index) => (
-                    <a 
-                      key={index} 
-                      href={link.url} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      style={{ textDecoration: 'none' }}
-                    >
-                      <img 
-                        src={getSocialIcon(link.name)} 
-                        alt={link.name} 
-                        style={{ width: '22px', height: '22px' }} 
-                      />
-                    </a>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        );
-        
-      // Classic template (default)
-      default:
-        return (
-          <table cellPadding="0" cellSpacing="0" style={{ fontFamily: 'Arial, sans-serif', color: colors.text }}>
-            <tbody>
-              <tr>
-                {logo && (
-                  <td style={{ verticalAlign: 'top', paddingRight: '15px' }}>
-                    <img src={logo} alt="Company logo" style={{ maxWidth: '100px', maxHeight: '100px' }} />
-                  </td>
-                )}
-                <td style={{ verticalAlign: 'top' }}>
-                  <table cellPadding="0" cellSpacing="0">
-                    <tbody>
-                      <tr>
-                        <td style={{ paddingBottom: '5px' }}>
-                          <div style={{ fontSize: '18px', fontWeight: 'bold', color: colors.primary }}>{formData.name}</div>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td style={{ paddingBottom: '5px' }}>
-                          <div style={{ fontSize: '14px', color: colors.secondary }}>{formData.title} | {formData.company}</div>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td style={{ paddingBottom: '10px' }}>
-                          <div style={{ fontSize: '12px' }}>
-                            <span style={{ display: 'block', marginBottom: '2px' }}>
-                              📧 <a href={`mailto:${formData.email}`} style={{ color: colors.primary, textDecoration: 'none' }}>{formData.email}</a>
-                            </span>
-                            <span style={{ display: 'block', marginBottom: '2px' }}>
-                              📱 {formData.phone}
-                            </span>
-                            {formData.website && (
-                              <span style={{ display: 'block', marginBottom: '2px' }}>
-                                🌐 <a href={`https://${formData.website}`} style={{ color: colors.primary, textDecoration: 'none' }}>{formData.website}</a>
-                              </span>
-                            )}
-                            {formData.address && (
-                              <span style={{ display: 'block', marginBottom: '2px' }}>
-                                📍 {formData.address}
-                              </span>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                      {activeLinks.length > 0 && (
-                        <tr>
-                          <td>
-                            <div style={{ display: 'flex', gap: '8px' }}>
-                              {activeLinks.map((link, index) => (
-                                <a 
-                                  key={index} 
-                                  href={link.url} 
-                                  target="_blank" 
-                                  rel="noopener noreferrer"
-                                  style={{ textDecoration: 'none' }}
-                                >
-                                  <img 
-                                    src={getSocialIcon(link.name)} 
-                                    alt={link.name} 
-                                    style={{ width: '20px', height: '20px' }} 
-                                  />
-                                </a>
-                              ))}
-                            </div>
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        );
+
+  // Download HTML
+  const downloadHtml = () => {
+    const html = generateHtmlCode();
+    const blob = new Blob([html], { type: "text/html" });
+    saveAs(blob, "email-signature.html");
+  };
+
+  // Download as PNG
+  const downloadPng = async () => {
+    if (customHtml) {
+      alert("Custom HTML templates can only be downloaded as HTML, not as PNG.");
+      return;
     }
+    
+    if (signatureRef.current) {
+      try {
+        const dataUrl = await toPng(signatureRef.current, { quality: 0.95 });
+        saveAs(dataUrl, 'email-signature.png');
+      } catch (error) {
+        console.error('Error generating PNG:', error);
+      }
+    }
+  };
+  
+  // Get active social links
+  const activeLinks = socialLinks.filter(link => link.active);
+  
+  // Render the template based on selection
+  const renderTemplate = () => {
+    const templateRender = templates[selectedTemplate] || templates.default;
+    
+    // Prepare template props
+    const templateProps = {
+      formData,
+      logo,
+      headshot,
+      colors,
+      activeLinks,
+      getSocialIcon,
+      iconAnimation,
+      iconStyle
+    };
+    
+    return templateRender(templateProps);
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
-          <h1 className="text-2xl font-bold text-gray-900">Email Signature Generator</h1>
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-50 to-gray-100">
+      <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+          <h1 className="text-2xl font-bold text-gray-900">Professional Email Signature Generator</h1>
+          <button 
+            onClick={downloadHtml} 
+            className="inline-flex items-center rounded-md bg-teal-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-teal-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"
+          >
+            <ArrowDownTrayIcon className="h-5 w-5 mr-1" />
+            Download Signature
+          </button>
         </div>
       </header>
 
@@ -587,40 +616,166 @@ const SignatureGenerator = () => {
             {/* Left side: Controls */}
             <div className="lg:w-1/2 space-y-6">
               {/* Template Selection */}
-              <div className="bg-white p-6 rounded-lg shadow">
-                <h2 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 mr-2">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" />
-                  </svg>
-                  Template
-                </h2>
-                <div className="grid grid-cols-2 gap-3">
-                  {templates.map((template) => (
-                    <div
-                      key={template.id}
-                      className={`border rounded-lg p-3 cursor-pointer transition-colors ${
-                        selectedTemplate === template.id
-                          ? "border-teal-500 bg-teal-50"
-                          : "border-gray-200 hover:border-gray-300"
-                      }`}
-                      onClick={() => setSelectedTemplate(template.id)}
-                    >
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h3 className="font-medium">{template.name}</h3>
-                          <p className="text-xs text-gray-500">{template.description}</p>
-                        </div>
-                        {selectedTemplate === template.id && (
-                          <CheckIcon className="h-5 w-5 text-teal-600" />
-                        )}
-                      </div>
+              <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-lg font-medium text-gray-900 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 mr-2">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" />
+                    </svg>
+                    Template Design
+                  </h2>
+                  <button
+                    onClick={() => setShowTemplateSelector(true)}
+                    className="inline-flex items-center rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                  >
+                    <span className="mr-1">Change</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                    </svg>
+                  </button>
+                </div>
+                
+                <div className="flex items-center p-3 bg-gray-50 rounded-lg border border-gray-200">
+                  <div className="w-16 h-16 bg-gray-200 rounded-md flex items-center justify-center flex-shrink-0 mr-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 text-gray-500">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <div className="font-medium text-gray-800">
+                      {templates[selectedTemplate] ? templates[selectedTemplate].name || selectedTemplate.charAt(0).toUpperCase() + selectedTemplate.slice(1) : 'Classic'}
                     </div>
-                  ))}
+                    <p className="text-sm text-gray-500 mt-1">
+                      {selectedTemplate === 'classic' ? 'Traditional horizontal layout' 
+                       : selectedTemplate === 'modern' ? 'Clean, minimalist design'
+                       : selectedTemplate === 'compact' ? 'Space-efficient layout'
+                       : selectedTemplate === 'bold' ? 'Eye-catching design with emphasis'
+                       : 'Custom template design'}
+                    </p>
+                  </div>
                 </div>
               </div>
 
+              {/* Images Section (Logo and Headshot) */}
+              <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                <h2 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+                  <PhotoIcon className="h-5 w-5 mr-2" />
+                  Images
+                </h2>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Logo Upload */}
+                  <div className="border border-gray-200 rounded-lg p-4">
+                    <h3 className="text-sm font-medium text-gray-700 mb-3">Company Logo</h3>
+                    <div className="flex flex-col items-center">
+                      {logo ? (
+                        <div className="relative">
+                          <img src={logo} alt="Company logo" className="h-20 w-auto object-contain mb-3" />
+                          <button
+                            type="button"
+                            onClick={handleClearLogo}
+                            className="absolute -top-2 -right-2 rounded-full bg-white p-1 text-gray-500 shadow-sm hover:text-red-500 border border-gray-200"
+                          >
+                            <XMarkIcon className="h-4 w-4" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-center h-20 w-32 bg-gray-100 rounded-lg mb-3">
+                          <BuildingOfficeIcon className="h-8 w-8 text-gray-400" />
+                        </div>
+                      )}
+                      
+                      <label
+                        htmlFor="logo-upload"
+                        className="cursor-pointer mt-2 inline-flex items-center rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                      >
+                        <ArrowUpTrayIcon className="h-4 w-4 mr-1" />
+                        {logo ? 'Change Logo' : 'Upload Logo'}
+                        <input
+                          id="logo-upload"
+                          name="logo"
+                          type="file"
+                          accept="image/*"
+                          className="sr-only"
+                          onChange={handleLogoUpload}
+                        />
+                      </label>
+                    </div>
+                  </div>
+                  
+                  {/* Headshot Upload */}
+                  <div className="border border-gray-200 rounded-lg p-4">
+                    <h3 className="text-sm font-medium text-gray-700 mb-3">Profile Photo</h3>
+                    <div className="flex flex-col items-center">
+                      {headshot ? (
+                        <div className="relative">
+                          <img 
+                            src={headshot.url} 
+                            alt="Headshot" 
+                            className={`
+                              h-20 w-20 object-cover mb-3
+                              ${headshot.shape === 'circle' ? 'rounded-full' : ''}
+                              ${headshot.shape === 'rounded' ? 'rounded-lg' : ''}
+                              ${headshot.borderStyle === 'thin' ? 'border-2' : ''}
+                              ${headshot.borderStyle === 'thick' ? 'border-4' : ''}
+                              ${headshot.borderStyle === 'double' ? 'border-double border-4' : ''}
+                              ${headshot.borderStyle === 'dashed' ? 'border-2 border-dashed' : ''}
+                            `}
+                            style={{
+                              borderColor: headshot.borderStyle !== 'none' && headshot.borderStyle !== 'shadow' && headshot.borderStyle !== 'glow' ? headshot.borderColor : undefined,
+                              boxShadow: headshot.borderStyle === 'shadow' ? '0 4px 6px rgba(0, 0, 0, 0.1)' 
+                                       : headshot.borderStyle === 'glow' ? `0 0 10px ${headshot.borderColor}` 
+                                       : 'none',
+                            }}
+                          />
+                          <button
+                            type="button"
+                            onClick={handleClearHeadshot}
+                            className="absolute -top-2 -right-2 rounded-full bg-white p-1 text-gray-500 shadow-sm hover:text-red-500 border border-gray-200"
+                          >
+                            <XMarkIcon className="h-4 w-4" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-center h-20 w-20 bg-gray-100 rounded-full mb-3">
+                          <UserCircleIcon className="h-12 w-12 text-gray-400" />
+                        </div>
+                      )}
+                      
+                      <div className="flex space-x-2">
+                        <label
+                          htmlFor="headshot-upload"
+                          className="cursor-pointer mt-2 inline-flex items-center rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                        >
+                          <ArrowUpTrayIcon className="h-4 w-4 mr-1" />
+                          {headshot ? 'Change Photo' : 'Upload Photo'}
+                          <input
+                            id="headshot-upload"
+                            name="headshot"
+                            type="file"
+                            accept="image/*"
+                            className="sr-only"
+                            onChange={handleHeadshotUpload}
+                          />
+                        </label>
+                        
+                        {headshot && (
+                          <button
+                            onClick={() => setShowHeadshotCustomizer(true)}
+                            className="mt-2 inline-flex items-center rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                          >
+                            <AdjustmentsHorizontalIcon className="h-4 w-4 mr-1" />
+                            Customize
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
               {/* Personal Information */}
-              <div className="bg-white p-6 rounded-lg shadow">
+              <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
                 <h2 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
                   <DocumentTextIcon className="h-5 w-5 mr-2" />
                   Personal Information
@@ -718,47 +873,88 @@ const SignatureGenerator = () => {
                     />
                   </div>
                 </div>
-              </div>
-
-              {/* Logo Upload */}
-              <div className="bg-white p-6 rounded-lg shadow">
-                <h2 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                  <PhotoIcon className="h-5 w-5 mr-2" />
-                  Company Logo
-                </h2>
-                <div className="mt-1 flex items-center">
-                  {logo ? (
-                    <div className="relative">
-                      <img src={logo} alt="Company logo" className="h-16 w-auto object-contain" />
-                      <button
-                        type="button"
-                        onClick={handleClearLogo}
-                        className="absolute -top-2 -right-2 rounded-full bg-white p-1 text-gray-500 shadow-sm hover:text-red-500"
-                      >
-                        <XMarkIcon className="h-4 w-4" />
-                      </button>
+                
+                {/* Extra Fields */}
+                {formData.extraFields.length > 0 && (
+                  <div className="mt-6">
+                    <h3 className="text-sm font-medium text-gray-700 mb-3">Additional Fields</h3>
+                    <div className="space-y-3">
+                      {formData.extraFields.map((field, index) => (
+                        <div key={index} className="flex items-start">
+                          <div className="grid grid-cols-3 gap-2 flex-grow mr-2">
+                            <div>
+                              <input
+                                type="text"
+                                placeholder="Label"
+                                value={field.label}
+                                onChange={(e) => handleExtraFieldChange(index, { ...field, label: e.target.value })}
+                                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"
+                              />
+                            </div>
+                            <div className="col-span-2">
+                              <div className="flex items-center">
+                                <input
+                                  type="text"
+                                  placeholder="Value"
+                                  value={field.value}
+                                  onChange={(e) => handleExtraFieldChange(index, { ...field, value: e.target.value })}
+                                  className="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"
+                                />
+                                <select
+                                  value={field.icon}
+                                  onChange={(e) => handleExtraFieldChange(index, { ...field, icon: e.target.value })}
+                                  className="ml-2 rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"
+                                >
+                                  <option value="📝">📝</option>
+                                  <option value="🔗">🔗</option>
+                                  <option value="📱">📱</option>
+                                  <option value="📧">📧</option>
+                                  <option value="📍">📍</option>
+                                  <option value="🌐">🌐</option>
+                                  <option value="📅">📅</option>
+                                  <option value="⭐">⭐</option>
+                                  <option value="💼">💼</option>
+                                </select>
+                              </div>
+                              <div className="mt-1 flex items-center">
+                                <input
+                                  type="checkbox"
+                                  id={`isLink-${index}`}
+                                  checked={field.isLink}
+                                  onChange={(e) => handleExtraFieldChange(index, { ...field, isLink: e.target.checked })}
+                                  className="h-4 w-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+                                />
+                                <label htmlFor={`isLink-${index}`} className="ml-2 block text-xs text-gray-500">
+                                  This is a clickable link
+                                </label>
+                              </div>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => removeExtraField(index)}
+                            className="rounded-md bg-white p-1 text-gray-400 hover:text-red-500 ml-2"
+                          >
+                            <TrashIcon className="h-5 w-5" />
+                          </button>
+                        </div>
+                      ))}
                     </div>
-                  ) : (
-                    <label
-                      htmlFor="logo-upload"
-                      className="cursor-pointer rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                    >
-                      Upload Logo
-                      <input
-                        id="logo-upload"
-                        name="logo"
-                        type="file"
-                        accept="image/*"
-                        className="sr-only"
-                        onChange={handleLogoUpload}
-                      />
-                    </label>
-                  )}
+                  </div>
+                )}
+                
+                <div className="mt-4">
+                  <button
+                    onClick={addExtraField}
+                    className="inline-flex items-center text-sm text-teal-600 hover:text-teal-500"
+                  >
+                    <PlusIcon className="h-4 w-4 mr-1" />
+                    Add Custom Field
+                  </button>
                 </div>
               </div>
 
               {/* Colors */}
-              <div className="bg-white p-6 rounded-lg shadow">
+              <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
                 <h2 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
                   <SwatchIcon className="h-5 w-5 mr-2" />
                   Colors
@@ -808,54 +1004,88 @@ const SignatureGenerator = () => {
                       />
                     </div>
                   </div>
+                  <div>
+                    <label htmlFor="text" className="block text-sm font-medium text-gray-700">
+                      Text Color
+                    </label>
+                    <div className="mt-1 flex items-center">
+                      <input
+                        type="color"
+                        name="text"
+                        id="text"
+                        value={colors.text}
+                        onChange={handleColorChange}
+                        className="h-8 w-8 rounded-md border-gray-300 mr-2"
+                      />
+                      <input
+                        type="text"
+                        value={colors.text}
+                        onChange={handleColorChange}
+                        name="text"
+                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label htmlFor="background" className="block text-sm font-medium text-gray-700">
+                      Background Color
+                    </label>
+                    <div className="mt-1 flex items-center">
+                      <input
+                        type="color"
+                        name="background"
+                        id="background"
+                        value={colors.background}
+                        onChange={handleColorChange}
+                        className="h-8 w-8 rounded-md border-gray-300 mr-2"
+                      />
+                      <input
+                        type="text"
+                        value={colors.background}
+                        onChange={handleColorChange}
+                        name="background"
+                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
 
               {/* Social Links */}
-              <div className="bg-white p-6 rounded-lg shadow">
-                <h2 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                  <LinkIcon className="h-5 w-5 mr-2" />
-                  Social Links
-                </h2>
-                
-                {/* Icon Style Selection */}
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Icon Style
-                  </label>
-                  <div className="grid grid-cols-3 gap-3">
-                    {['flat', 'colored', 'monochrome'].map((style) => (
-                      <div
-                        key={style}
-                        className={`border rounded-lg p-2 cursor-pointer transition-colors text-center ${
-                          iconStyle === style
-                            ? "border-teal-500 bg-teal-50"
-                            : "border-gray-200 hover:border-gray-300"
-                        }`}
-                        onClick={() => setIconStyle(style)}
-                      >
-                        <div className="flex justify-between items-center">
-                          <span className="capitalize text-sm">{style}</span>
-                          {iconStyle === style && (
-                            <CheckIcon className="h-4 w-4 text-teal-600" />
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+              <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-lg font-medium text-gray-900 flex items-center">
+                    <LinkIcon className="h-5 w-5 mr-2" />
+                    Social Links
+                  </h2>
+                  <button
+                    onClick={() => setShowIconSelector(true)}
+                    className="inline-flex items-center rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                  >
+                    <Cog6ToothIcon className="h-4 w-4 mr-1" />
+                    Customize Icons
+                  </button>
                 </div>
                 
                 <div className="space-y-4">
                   {socialLinks.map((link, index) => (
                     <div key={index} className="border border-gray-200 rounded-lg p-3">
-                      <div className="flex items-center mb-2">
+                      <div className="flex items-center">
                         <input
                           type="checkbox"
                           checked={link.active}
                           onChange={() => toggleSocialLink(index)}
                           className="h-4 w-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500 mr-2"
                         />
-                        <span className="text-sm font-medium text-gray-700 mr-2">
+                        <span className="text-sm font-medium text-gray-700 flex items-center">
+                          <img 
+                            src={getSocialIcon(link.name)} 
+                            alt={link.name} 
+                            className="w-5 h-5 mr-2"
+                            style={{ 
+                              filter: iconStyle === 'monochrome' ? `brightness(0) saturate(100%) ${colors.iconColor !== '#000000' ? `invert(1) sepia(1) saturate(3) hue-rotate(${parseInt(colors.iconColor.substring(1, 3), 16)}deg)` : ''}` : 'none',
+                            }}
+                          />
                           {link.name}
                         </span>
                         
@@ -869,14 +1099,8 @@ const SignatureGenerator = () => {
                                 className="h-6 w-6 object-contain mr-2" 
                               />
                               <button
-                                onClick={() => {
-                                  setCustomSocialIcons(prev => {
-                                    const newIcons = {...prev};
-                                    delete newIcons[link.name];
-                                    return newIcons;
-                                  });
-                                }}
-                                className="absolute -top-1 -right-1 rounded-full bg-white p-0.5 text-gray-500 shadow-sm hover:text-red-500"
+                                onClick={() => clearCustomIcon(link.name)}
+                                className="absolute -top-1 -right-1 rounded-full bg-white p-0.5 text-gray-500 shadow-sm hover:text-red-500 border border-gray-100"
                               >
                                 <XMarkIcon className="h-3 w-3" />
                               </button>
@@ -899,12 +1123,6 @@ const SignatureGenerator = () => {
                               </label>
                             </>
                           )}
-                          
-                          <img 
-                            src={getSocialIcon(link.name)} 
-                            alt={`${link.name} icon`} 
-                            className="h-5 w-5 object-contain" 
-                          />
                         </div>
                       </div>
                       
@@ -913,7 +1131,7 @@ const SignatureGenerator = () => {
                         value={link.url}
                         onChange={(e) => updateSocialLink(index, e.target.value)}
                         disabled={!link.active}
-                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"
+                        className="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"
                         placeholder={`Your ${link.name} URL`}
                       />
                     </div>
@@ -922,7 +1140,7 @@ const SignatureGenerator = () => {
               </div>
 
               {/* HTML Template Upload */}
-              <div className="bg-white p-6 rounded-lg shadow">
+              <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
                 <h2 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
                   <CodeBracketIcon className="h-5 w-5 mr-2" />
                   HTML Template
@@ -961,7 +1179,7 @@ const SignatureGenerator = () => {
                           <textarea
                             value={customHtml}
                             onChange={(e) => setCustomHtml(e.target.value)}
-                            className="w-full h-40 font-mono text-xs p-2 border rounded"
+                            className="w-full h-40 font-mono text-xs p-2 border rounded code-editor"
                           />
                         </div>
                       )}
@@ -1007,7 +1225,7 @@ const SignatureGenerator = () => {
                     
                     {showHtmlCode && !htmlTemplate && (
                       <div className="mt-3">
-                        <pre className="w-full h-40 font-mono text-xs p-2 border rounded overflow-auto bg-gray-50">
+                        <pre className="w-full h-60 font-mono text-xs p-2 border rounded overflow-auto bg-gray-50 code-editor">
                           {generateHtmlCode()}
                         </pre>
                       </div>
@@ -1017,7 +1235,7 @@ const SignatureGenerator = () => {
               </div>
 
               {/* Download Options */}
-              <div className="bg-white p-6 rounded-lg shadow">
+              <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
                 <h2 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
                   <ArrowDownTrayIcon className="h-5 w-5 mr-2" />
                   Download Options
@@ -1038,12 +1256,16 @@ const SignatureGenerator = () => {
                     Download PNG
                   </button>
                 </div>
+                <div className="mt-4 text-sm text-gray-500 flex items-start">
+                  <QuestionMarkCircleIcon className="h-5 w-5 mr-2 flex-shrink-0 text-gray-400" />
+                  <p>HTML format is recommended for most email clients. PNG format is best for applications that don't support HTML signatures.</p>
+                </div>
               </div>
             </div>
 
             {/* Right side: Preview */}
             <div className="lg:w-1/2">
-              <div className="bg-white p-6 rounded-lg shadow sticky top-6">
+              <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 sticky top-24">
                 <h2 className="text-lg font-medium text-gray-900 mb-4">Preview</h2>
                 <div className="border p-4 rounded">
                   {customHtml ? (
@@ -1056,7 +1278,7 @@ const SignatureGenerator = () => {
                       className="signature-preview" 
                       style={{ backgroundColor: colors.background }}
                     >
-                      {renderSignatureTemplate()}
+                      {renderTemplate()}
                     </div>
                   )}
                 </div>
@@ -1067,6 +1289,17 @@ const SignatureGenerator = () => {
                       : "This is how your signature will look in email clients. To use it, download the HTML or PNG and add it to your email client settings."}
                   </p>
                 </div>
+                
+                <div className="mt-6 border-t border-gray-200 pt-4">
+                  <h3 className="text-sm font-medium text-gray-800 mb-2">How to add this signature to your email client:</h3>
+                  <ol className="text-sm text-gray-500 list-decimal pl-5 space-y-1">
+                    <li>Download your signature in HTML or PNG format</li>
+                    <li>Open your email client settings</li>
+                    <li>Find the signature section (usually under Settings &gt; General or Settings &gt; Mail)</li>
+                    <li>Import or paste your signature</li>
+                    <li>Save your changes</li>
+                  </ol>
+                </div>
               </div>
             </div>
           </div>
@@ -1075,9 +1308,73 @@ const SignatureGenerator = () => {
 
       <footer className="bg-white border-t border-gray-200 mt-8">
         <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
-          <p className="text-center text-sm text-gray-500">Email Signature Generator | Create professional email signatures in seconds</p>
+          <p className="text-center text-sm text-gray-500">Professional Email Signature Generator | Create stunning email signatures in seconds</p>
         </div>
       </footer>
+      
+      {/* Template Selector Modal */}
+      {showTemplateSelector && (
+        <TemplateSelector 
+          selectedTemplate={selectedTemplate}
+          onSelectTemplate={setSelectedTemplate}
+          onClose={() => setShowTemplateSelector(false)}
+        />
+      )}
+      
+      {/* Logo Cropper Modal */}
+      {showLogoCropper && tempLogoImage && (
+        <ImageCropper
+          image={tempLogoImage}
+          onCropComplete={handleLogoCropComplete}
+          onCancel={() => {
+            setShowLogoCropper(false);
+            setTempLogoImage(null);
+          }}
+          type="logo"
+        />
+      )}
+      
+      {/* Headshot Cropper Modal */}
+      {showHeadshotCropper && tempHeadshotImage && (
+        <ImageCropper
+          image={tempHeadshotImage}
+          onCropComplete={handleHeadshotCropComplete}
+          onCancel={() => {
+            setShowHeadshotCropper(false);
+            setTempHeadshotImage(null);
+          }}
+          type="headshot"
+        />
+      )}
+      
+      {/* Icon Selector Modal */}
+      {showIconSelector && (
+        <IconSelector
+          selectedIconStyle={iconStyle}
+          onSelectIconStyle={handleIconStyleSelect}
+          selectedAnimation={iconAnimation}
+          onSelectAnimation={handleIconAnimationSelect}
+          iconColor={colors.iconColor}
+          onColorChange={handleIconColorChange}
+          onClose={() => setShowIconSelector(false)}
+        />
+      )}
+      
+      {/* Headshot Customizer Modal */}
+      {showHeadshotCustomizer && headshot && (
+        <AnimatedHeadshot
+          headshot={headshot.url}
+          animation={headshot.animation}
+          onSelectAnimation={handleHeadshotAnimationSelect}
+          borderStyle={headshot.borderStyle}
+          onSelectBorderStyle={handleHeadshotBorderStyleSelect}
+          borderColor={headshot.borderColor}
+          onBorderColorChange={handleHeadshotBorderColorChange}
+          shape={headshot.shape}
+          onSelectShape={handleHeadshotShapeSelect}
+          onClose={() => setShowHeadshotCustomizer(false)}
+        />
+      )}
     </div>
   );
 };
