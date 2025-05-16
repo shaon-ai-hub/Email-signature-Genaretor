@@ -26,6 +26,7 @@ textarea:focus {
   border-radius: 4px;
   transition: all 0.3s ease;
   overflow: auto;
+  max-height: 400px;
 }
 
 /* Template selection styles */
@@ -64,6 +65,49 @@ input[type="color"]::-webkit-color-swatch {
   width: 24px;
   height: 24px;
   margin-right: 8px;
+}
+
+/* Social media card styles */
+.social-media-card {
+  transition: all 0.2s ease;
+}
+
+.social-media-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* Custom HTML display */
+pre {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+/* Code editor styles */
+.code-editor {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
+  line-height: 1.4;
+  font-size: 12px;
+}
+
+/* Custom icon preview */
+.custom-icon-preview {
+  position: relative;
+  display: inline-block;
+}
+
+.custom-icon-preview .remove-icon {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: white;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 /* Responsive adjustments */
