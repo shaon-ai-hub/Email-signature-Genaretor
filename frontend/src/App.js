@@ -122,9 +122,14 @@ const SignatureGenerator = () => {
 
   // Generate HTML code
   const generateHtmlCode = () => {
+    if (customHtml) {
+      return customHtml;
+    }
+    
     if (signatureRef.current) {
       const html = signatureRef.current.outerHTML;
-      return html;
+      // Format HTML with proper indentation for readability
+      return html.replace(/<([^>]+)>/g, '\n<$1>');
     }
     return "";
   };
@@ -138,6 +143,11 @@ const SignatureGenerator = () => {
 
   // Download as PNG
   const downloadPng = async () => {
+    if (customHtml) {
+      alert("Custom HTML templates can only be downloaded as HTML, not as PNG.");
+      return;
+    }
+    
     if (signatureRef.current) {
       try {
         const dataUrl = await toPng(signatureRef.current, { quality: 0.95 });
