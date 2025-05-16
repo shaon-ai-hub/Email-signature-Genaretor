@@ -10,7 +10,9 @@ import {
   SwatchIcon,
   LinkIcon,
   XMarkIcon,
-  PlusIcon
+  PlusIcon,
+  TemplateIcon,
+  CheckIcon
 } from '@heroicons/react/24/outline';
 
 const SignatureGenerator = () => {
