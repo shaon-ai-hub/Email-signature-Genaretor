@@ -46,8 +46,25 @@ const SignatureGenerator = () => {
     { name: "LinkedIn", url: "https://linkedin.com/in/johndoe", active: true },
     { name: "Twitter", url: "https://twitter.com/johndoe", active: true },
     { name: "Facebook", url: "https://facebook.com/johndoe", active: false },
-    { name: "Instagram", url: "https://instagram.com/johndoe", active: false }
+    { name: "Instagram", url: "https://instagram.com/johndoe", active: false },
+    { name: "GitHub", url: "https://github.com/johndoe", active: false },
+    { name: "YouTube", url: "https://youtube.com/c/johndoe", active: false },
+    { name: "WhatsApp", url: "https://wa.me/15551234567", active: false },
+    { name: "Telegram", url: "https://t.me/johndoe", active: false }
   ]);
+  
+  // Custom social icons
+  const [customSocialIcons, setCustomSocialIcons] = useState({});
+  
+  // Icon style selection
+  const [iconStyle, setIconStyle] = useState("flat");
+  
+  // HTML Template
+  const [htmlTemplate, setHtmlTemplate] = useState(null);
+  const [customHtml, setCustomHtml] = useState("");
+  
+  // Toggle showing raw HTML
+  const [showHtmlCode, setShowHtmlCode] = useState(false);
   
   // Template options
   const templates = [
