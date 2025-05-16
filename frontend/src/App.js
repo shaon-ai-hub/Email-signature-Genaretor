@@ -1038,16 +1038,26 @@ const SignatureGenerator = () => {
               <div className="bg-white p-6 rounded-lg shadow sticky top-6">
                 <h2 className="text-lg font-medium text-gray-900 mb-4">Preview</h2>
                 <div className="border p-4 rounded">
-                  <div 
-                    ref={signatureRef} 
-                    className="signature-preview" 
-                    style={{ backgroundColor: colors.background }}
-                  >
-                    {renderSignatureTemplate()}
-                  </div>
+                  {customHtml ? (
+                    <div className="signature-preview" style={{ backgroundColor: colors.background }}>
+                      <div dangerouslySetInnerHTML={{ __html: customHtml }} />
+                    </div>
+                  ) : (
+                    <div 
+                      ref={signatureRef} 
+                      className="signature-preview" 
+                      style={{ backgroundColor: colors.background }}
+                    >
+                      {renderSignatureTemplate()}
+                    </div>
+                  )}
                 </div>
                 <div className="mt-4 text-sm text-gray-500">
-                  <p>This is how your signature will look in email clients. To use it, download the HTML or PNG and add it to your email client settings.</p>
+                  <p>
+                    {customHtml 
+                      ? "You are using a custom HTML template. To make changes, edit the HTML code directly."
+                      : "This is how your signature will look in email clients. To use it, download the HTML or PNG and add it to your email client settings."}
+                  </p>
                 </div>
               </div>
             </div>
