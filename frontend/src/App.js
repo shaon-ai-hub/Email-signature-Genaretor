@@ -817,27 +817,194 @@ const SignatureGenerator = () => {
                   <LinkIcon className="h-5 w-5 mr-2" />
                   Social Links
                 </h2>
+                
+                {/* Icon Style Selection */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Icon Style
+                  </label>
+                  <div className="grid grid-cols-3 gap-3">
+                    {['flat', 'colored', 'monochrome'].map((style) => (
+                      <div
+                        key={style}
+                        className={`border rounded-lg p-2 cursor-pointer transition-colors text-center ${
+                          iconStyle === style
+                            ? "border-teal-500 bg-teal-50"
+                            : "border-gray-200 hover:border-gray-300"
+                        }`}
+                        onClick={() => setIconStyle(style)}
+                      >
+                        <div className="flex justify-between items-center">
+                          <span className="capitalize text-sm">{style}</span>
+                          {iconStyle === style && (
+                            <CheckIcon className="h-4 w-4 text-teal-600" />
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
                 <div className="space-y-4">
                   {socialLinks.map((link, index) => (
-                    <div key={index} className="flex items-center">
-                      <input
-                        type="checkbox"
-                        checked={link.active}
-                        onChange={() => toggleSocialLink(index)}
-                        className="h-4 w-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500 mr-2"
-                      />
-                      <span className="text-sm font-medium text-gray-700 mr-2 w-20">
-                        {link.name}:
-                      </span>
+                    <div key={index} className="border border-gray-200 rounded-lg p-3">
+                      <div className="flex items-center mb-2">
+                        <input
+                          type="checkbox"
+                          checked={link.active}
+                          onChange={() => toggleSocialLink(index)}
+                          className="h-4 w-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500 mr-2"
+                        />
+                        <span className="text-sm font-medium text-gray-700 mr-2">
+                          {link.name}
+                        </span>
+                        
+                        {/* Custom icon upload */}
+                        <div className="ml-auto flex items-center">
+                          {customSocialIcons[link.name] ? (
+                            <div className="relative">
+                              <img 
+                                src={customSocialIcons[link.name]} 
+                                alt={`Custom ${link.name} icon`} 
+                                className="h-6 w-6 object-contain mr-2" 
+                              />
+                              <button
+                                onClick={() => {
+                                  setCustomSocialIcons(prev => {
+                                    const newIcons = {...prev};
+                                    delete newIcons[link.name];
+                                    return newIcons;
+                                  });
+                                }}
+                                className="absolute -top-1 -right-1 rounded-full bg-white p-0.5 text-gray-500 shadow-sm hover:text-red-500"
+                              >
+                                <XMarkIcon className="h-3 w-3" />
+                              </button>
+                            </div>
+                          ) : (
+                            <>
+                              <label
+                                htmlFor={`icon-upload-${index}`}
+                                className="cursor-pointer text-xs text-teal-600 hover:text-teal-800 mr-2 flex items-center"
+                              >
+                                <PhotoIcon className="h-4 w-4 mr-1" />
+                                Custom Icon
+                                <input
+                                  id={`icon-upload-${index}`}
+                                  type="file"
+                                  accept="image/*"
+                                  className="sr-only"
+                                  onChange={(e) => handleCustomIconUpload(e, link.name)}
+                                />
+                              </label>
+                            </>
+                          )}
+                          
+                          <img 
+                            src={getSocialIcon(link.name)} 
+                            alt={`${link.name} icon`} 
+                            className="h-5 w-5 object-contain" 
+                          />
+                        </div>
+                      </div>
+                      
                       <input
                         type="text"
                         value={link.url}
                         onChange={(e) => updateSocialLink(index, e.target.value)}
                         disabled={!link.active}
                         className="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"
+                        placeholder={`Your ${link.name} URL`}
                       />
                     </div>
                   ))}
+                </div>
+              </div>
+
+              {/* HTML Template Upload */}
+              <div className="bg-white p-6 rounded-lg shadow">
+                <h2 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+                  <CodeBracketIcon className="h-5 w-5 mr-2" />
+                  HTML Template
+                </h2>
+                
+                <div className="space-y-4">
+                  {htmlTemplate ? (
+                    <div className="border border-gray-200 rounded-lg p-3">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center">
+                          <DocumentTextIcon className="h-5 w-5 text-gray-500 mr-2" />
+                          <span className="text-sm font-medium">{htmlTemplate}</span>
+                        </div>
+                        <button
+                          onClick={clearHtmlTemplate}
+                          className="rounded-full bg-white p-1 text-gray-500 shadow-sm hover:text-red-500 border border-gray-200"
+                        >
+                          <XMarkIcon className="h-4 w-4" />
+                        </button>
+                      </div>
+                      
+                      <div className="text-xs text-gray-500 mb-3">
+                        <p>Custom HTML template loaded. The preview and download will use this template instead of the generated one.</p>
+                      </div>
+                      
+                      <button
+                        onClick={() => setShowHtmlCode(!showHtmlCode)}
+                        className="text-xs text-teal-600 hover:text-teal-800 flex items-center"
+                      >
+                        <CodeBracketIcon className="h-4 w-4 mr-1" />
+                        {showHtmlCode ? "Hide HTML" : "View HTML"}
+                      </button>
+                      
+                      {showHtmlCode && (
+                        <div className="mt-3">
+                          <textarea
+                            value={customHtml}
+                            onChange={(e) => setCustomHtml(e.target.value)}
+                            className="w-full h-40 font-mono text-xs p-2 border rounded"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div>
+                      <label
+                        htmlFor="html-template-upload"
+                        className="cursor-pointer rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 inline-flex items-center"
+                      >
+                        <DocumentTextIcon className="h-5 w-5 mr-1" />
+                        Upload HTML Template
+                        <input
+                          id="html-template-upload"
+                          type="file"
+                          accept=".html,.htm"
+                          className="sr-only"
+                          onChange={handleHtmlTemplateUpload}
+                        />
+                      </label>
+                      <p className="text-xs text-gray-500 mt-2">
+                        Upload an HTML template to use instead of the built-in templates. This is useful if you have specific HTML structure requirements.
+                      </p>
+                    </div>
+                  )}
+                  
+                  <div>
+                    <button
+                      onClick={() => setShowHtmlCode(!showHtmlCode)}
+                      className="text-sm text-teal-600 hover:text-teal-800 flex items-center"
+                    >
+                      <CodeBracketIcon className="h-4 w-4 mr-1" />
+                      {showHtmlCode ? "Hide Generated HTML" : "View Generated HTML"}
+                    </button>
+                    
+                    {showHtmlCode && !htmlTemplate && (
+                      <div className="mt-3">
+                        <pre className="w-full h-40 font-mono text-xs p-2 border rounded overflow-auto bg-gray-50">
+                          {generateHtmlCode()}
+                        </pre>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
