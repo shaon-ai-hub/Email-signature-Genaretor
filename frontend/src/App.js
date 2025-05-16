@@ -985,6 +985,14 @@ const SignatureGenerator = () => {
                       <p className="text-xs text-gray-500 mt-2">
                         Upload an HTML template to use instead of the built-in templates. This is useful if you have specific HTML structure requirements.
                       </p>
+                      <a 
+                        href="/sample-signature.html" 
+                        download="sample-signature.html"
+                        className="text-xs text-teal-600 hover:text-teal-800 inline-flex items-center mt-2"
+                      >
+                        <ArrowDownTrayIcon className="h-3 w-3 mr-1" />
+                        Download sample HTML template
+                      </a>
                     </div>
                   )}
                   
