@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import "./App.css";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { toPng } from 'html-to-image';
@@ -11,7 +11,7 @@ import {
   LinkIcon,
   XMarkIcon,
   PlusIcon,
-  TemplateIcon,
+  CodeBracketIcon,
   CheckIcon
 } from '@heroicons/react/24/outline';
 
